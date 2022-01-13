@@ -49,13 +49,13 @@ public class AES256EncryptionEngine implements EncryptionEngine {
   }
 
   @Override
-  public synchronized String decrypt(String cipherText) {
+  public synchronized String decrypt(String cipherText) throws KeyMismatchException {
     try {
       cipher.init(Cipher.DECRYPT_MODE, key);
       byte[] plainText = cipher.doFinal(Base64.getDecoder().decode(cipherText));
       return new String(plainText);
     } catch (IllegalBlockSizeException | BadPaddingException | InvalidKeyException e) {
-      throw new AES256EncryptionException(e);
+      throw new KeyMismatchException(e);
     }
   }
 }

@@ -1,20 +1,20 @@
 package thorpe.luke.password;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
-import thorpe.luke.cryptography.AES256EncryptionEngine;
-import thorpe.luke.cryptography.CryptographicHashingEngine;
-import thorpe.luke.cryptography.EncryptionEngine;
-import thorpe.luke.cryptography.SHA256CryptographicHashingEngine;
+import thorpe.luke.cryptography.*;
 import thorpe.luke.password.apdater.PasswordLibraryJsonAdapter;
 import thorpe.luke.util.JsonException;
 import thorpe.luke.util.JsonUtils;
 
 public class PasswordLibrary {
+  public static final String FILE_SUFFIX = ".passlib";
+
   private final String name;
   private final String description;
   private final String passwordHash;
@@ -55,7 +55,16 @@ public class PasswordLibrary {
 
   public static PasswordLibrary fromPassword(
       String name, String description, String password, String salt) {
-    return new PasswordLibrary(name, description, hash(password, salt), Collections.emptyList());
+    return PasswordLibrary.fromPassword(name, description, password, salt, Collections.emptyList());
+  }
+
+  public static PasswordLibrary fromPassword(
+      String name,
+      String description,
+      String password,
+      String salt,
+      Collection<PasswordEntry> passwordEntries) {
+    return new PasswordLibrary(name, description, hash(password, salt), passwordEntries);
   }
 
   public static PasswordLibrary readFromEncryptedFile(File file, String password, String salt)
@@ -71,6 +80,8 @@ public class PasswordLibrary {
               JsonUtils.fromJson(plainJson, PasswordLibraryJsonAdapter.class));
     } catch (JsonException e) {
       throw new IOException(e);
+    } catch (KeyMismatchException e) {
+      throw new PasswordMismatchException();
     }
     if (!passwordLibrary.getPasswordHash().equals(passwordHash)) {
       throw new PasswordMismatchException();
@@ -79,7 +90,7 @@ public class PasswordLibrary {
   }
 
   public void writeToEncryptedFile(File file, String salt) throws IOException {
-    FileWriter fileWriter = new FileWriter(file);
+    BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
     String plainJson;
     try {
       plainJson = JsonUtils.toJson(this);

@@ -3,5 +3,5 @@ package thorpe.luke.cryptography;
 public interface EncryptionEngine {
   String encrypt(String plainText);
 
-  String decrypt(String cipherText);
+  String decrypt(String cipherText) throws KeyMismatchException;
 }
