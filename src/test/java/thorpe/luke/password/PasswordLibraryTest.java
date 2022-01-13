@@ -1,7 +1,6 @@
 package thorpe.luke.password;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Fail.fail;
 
 import java.io.File;
@@ -62,9 +61,19 @@ public class PasswordLibraryTest {
       return;
     }
     assertThat(passwordLibraryFromDisk).isEqualTo(passwordLibrary);
-    assertThatThrownBy(() -> PasswordLibrary.readFromEncryptedFile(file, "wrong_password", salt))
-        .hasCauseInstanceOf(Exception.class);
-    assertThatThrownBy(() -> PasswordLibrary.readFromEncryptedFile(file, password, "wrong_salt"))
-        .hasCauseInstanceOf(Exception.class);
+    try {
+      PasswordLibrary.readFromEncryptedFile(file, "wrong_password", salt);
+      fail("Expected PasswordMismatchException to be thrown.");
+    } catch (IOException e) {
+      fail(e.getMessage());
+    } catch (PasswordMismatchException e) {
+    }
+    try {
+      PasswordLibrary.readFromEncryptedFile(file, password, "wrong_salt");
+      fail("Expected PasswordMismatchException to be thrown.");
+    } catch (IOException e) {
+      fail(e.getMessage());
+    } catch (PasswordMismatchException e) {
+    }
   }
 }

@@ -1,6 +1,7 @@
 package thorpe.luke.cryptography;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;
@@ -29,7 +30,14 @@ public abstract class EncryptionEngineTest {
     forManyPlainTexts(
         ((encryptionEngine, plainText) -> {
           String cipherText = encryptionEngine.encrypt(plainText);
-          String decryptedCipherText = encryptionEngine.decrypt(cipherText);
+          String decryptedCipherText;
+          try {
+            decryptedCipherText = encryptionEngine.decrypt(cipherText);
+          } catch (KeyMismatchException e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+            return;
+          }
           assertThat(decryptedCipherText).isEqualTo(plainText);
         }));
   }
